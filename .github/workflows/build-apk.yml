@@ -3,36 +3,37 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Ambil kode dari GitHub
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Siapkan Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
-      - name: Siapkan Java
+      - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
 
-      - name: Siapkan Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Instal paket & buat folder android
+      - name: Install dependencies and sync Capacitor
         run: |
           npm install
           npx cap add android
           npx cap sync android
 
-      - name: Buat izin kamera & internet di AndroidManifest.xml
+      - name: Add camera and internet permissions
         run: |
           node -e '
             const fs = require("fs");
@@ -47,13 +48,13 @@ jobs:
             }
           '
 
-      - name: Build file APK
+      - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Simpan hasil APK untuk diunduh
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: neoma-wms-apk
