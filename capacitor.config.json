@@ -1,0 +1,9 @@
+{
+  "appId": "click.neoma.wms",
+  "appName": "NEOMA WMS",
+  "webDir": "www",
+  "server": {
+    "url": "https://app.neoma.click",
+    "cleartext": true
+  }
+}
