@@ -19,7 +19,7 @@ jobs:
           node-version: "20"
 
       - name: Setup Java JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "17"
@@ -39,11 +39,13 @@ jobs:
             const fs = require("fs");
             const p = "android/app/src/main/AndroidManifest.xml";
             let xml = fs.readFileSync(p, "utf8");
+            const perms = [
+              "<uses-permission android:name=\"android.permission.INTERNET\" />",
+              "<uses-permission android:name=\"android.permission.CAMERA\" />",
+              "<uses-feature android:name=\"android.hardware.camera\" android:required=\"false\" />"
+            ].join("\n    ");
             if (!xml.includes("android.permission.CAMERA")) {
-              xml = xml.replace(
-                "<application ",
-                "<uses-permission android:name=\"android.permission.INTERNET\" />\n    <uses-permission android:name=\"android.permission.CAMERA\" />\n    <uses-feature android:name=\"android.hardware.camera\" android:required=\"false\" />\n\n    <application "
-              );
+              xml = xml.replace("<application ", perms + "\n\n    <application ");
               fs.writeFileSync(p, xml);
             }
           '
