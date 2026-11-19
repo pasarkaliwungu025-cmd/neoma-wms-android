@@ -1,0 +1,60 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode dari GitHub
+        uses: actions/checkout@v4
+
+      - name: Siapkan Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Siapkan Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Siapkan Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instal paket & buat folder android
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: Buat izin kamera & internet di AndroidManifest.xml
+        run: |
+          node -e '
+            const fs = require("fs");
+            const p = "android/app/src/main/AndroidManifest.xml";
+            let xml = fs.readFileSync(p, "utf8");
+            if (!xml.includes("android.permission.CAMERA")) {
+              xml = xml.replace(
+                "<application ",
+                "<uses-permission android:name=\"android.permission.INTERNET\" />\n    <uses-permission android:name=\"android.permission.CAMERA\" />\n    <uses-feature android:name=\"android.hardware.camera\" android:required=\"false\" />\n\n    <application "
+              );
+              fs.writeFileSync(p, xml);
+            }
+          '
+
+      - name: Build file APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Simpan hasil APK untuk diunduh
+        uses: actions/upload-artifact@v4
+        with:
+          name: neoma-wms-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
